@@ -1,12 +1,5 @@
 "use client";
-import {
-	$getRoot,
-	$getSelection,
-	EditorState,
-	FORMAT_TEXT_COMMAND,
-} from "lexical";
-import { useEffect, useState } from "react";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import React from "react";
 
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
@@ -14,16 +7,11 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import Toolbars from "./components/Toolbars";
-import { TreeView } from "@lexical/react/LexicalTreeView";
-import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
-import { HeadingNode, QuoteNode } from "@lexical/rich-text";
-import dynamic from "next/dynamic";
-import useLocalStorage from "./hook/useLocalStorage";
-
-import { exampleUsage } from "./lib/util";
-import Editor from "./components/Editor";
+import Toolbars from "./Toolbars";
+import { HeadingNode } from "@lexical/rich-text";
+import LoadState from "./LoadState";
+import { EditorState } from "lexical";
+import { loadingText } from "../lib/util";
 
 const theme = {
 	ltr: "ltr",
@@ -97,12 +85,29 @@ function onError(error: any) {
 	console.error(error);
 }
 
-export default function Page() {
+export default function Editor() {
+	const initialConfig = {
+		namespace: "MyEditor",
+		theme,
+		onError,
+		nodes: [HeadingNode],
+		editable: false,
+		editorState: loadingText,
+	};
+
 	return (
-		<div className=" py-10  bg-slate-100 h-screen">
-			<div className=" max-w-4xl mx-auto border focus:outline-none h-[70vh] p-5 rounded-md bg-white">
-				<Editor />
-			</div>
-		</div>
+		<LexicalComposer initialConfig={initialConfig}>
+			<Toolbars />
+			<LoadState />
+			<RichTextPlugin
+				contentEditable={
+					<ContentEditable className="focus:outline-none p-5" />
+				}
+				placeholder={<div>Enter some text...</div>}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<HistoryPlugin />
+			<AutoFocusPlugin />
+		</LexicalComposer>
 	);
 }
